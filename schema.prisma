@@ -1,1 +1,25 @@
-/* schema.prisma: não encontrado ou sem acesso */
+generator client { provider = "prisma-client-js" }
+
+datasource db { // Em dev você pode usar: DATABASE_URL="file:./dev.db" // Em produção (Vercel), use um provedor gerenciado (ex.: Turso/libSQL, Postgres, etc.) provider = "sqlite" url = env("DATABASE_URL") }
+
+model User { id String @id @default(cuid()) name String? handle String? image String? submissions Submission[] AsoDocument AsoDocument[] Certificate Certificate[] }
+
+model Submission { id String @id @default(cuid()) userId String? user User? @relation(fields: [userId], references: [id]) status String @default("DRAFT") step Int @default(0) personal String @default("{}") familyHistory String @default("{}") personalHistory String @default("{}") employers String @default("[]") physicalExam String @default("{}") evolution String @default("{}") createdAt DateTime @default(now()) updatedAt DateTime @updatedAt
+
+@@index([userId, status]) @@index([createdAt]) }
+
+model Appointment { id String @id @default(cuid()) title String patient String nomeSocial String? cpf String? dataNascimento DateTime? razaoSocial String? cnpj String? contact String? startAt DateTime durationMins Int @default(30) status String @default("SCHEDULED") notes String? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt
+
+@@index([startAt]) }
+
+model ServiceRequest { id String @id @default(cuid()) empresa String solicitante String paciente String pacienteCpf String? motivo String agendadoPara DateTime status String @default("PENDENTE") medica String? motorista String? realizadoEm DateTime? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt
+
+@@index([status, createdAt]) @@index([agendadoPara]) }
+
+model AsoDocument { id String @id @default(cuid()) userId String? user User? @relation(fields: [userId], references: [id]) name String @default("") originalUrl String editableUrl String status String @default("PENDENTE") fieldsJson String @default("{}") signedUrl String? signedAt DateTime? certificateId String? certificate Certificate? @relation(fields: [certificateId], references: [id]) createdAt DateTime @default(now())
+
+@@index([userId, createdAt]) @@index([certificateId]) @@index([status]) }
+
+model Certificate { id String @id @default(cuid()) userId String? user User? @relation(fields: [userId], references: [id]) name String fileUrl String createdAt DateTime @default(now()) AsoDocuments AsoDocument[]
+
+@@index([userId, createdAt]) }
